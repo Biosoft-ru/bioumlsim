@@ -1,9 +1,16 @@
 import bioumlsim
 
-sim = bioumlsim.BioUMLSim('C:/BioUML_2023.1')
-model3 = sim.load("C:/Users/Damag/BioUML_Scripts/models_selected/BIOMD0000000003.xml")
-model4 = sim.load("C:/Users/Damag/BioUML_Scripts/models_selected/BIOMD0000000010.xml")
-result3 = model3.simulate(100, 10)
-result4 = model4.simulate(100, 10)
-print(result3.getValues('C'))
-print(result4.getValues('MKK'))
+sim = bioumlsim.BioUMLSim()
+model = sim.load("C:/Users/Damag/BioUML_Scripts/models_selected/BIOMD0000000003.xml")
+result = model.simulate(100, 10)
+
+result.toFile("C:/Users/Damag/result2.txt", precision=4)
+print(result)
+print()
+print(result.getTimes())
+print()
+print(result.getNames())
+print()
+print(result.getValues())
+print()
+print(result.getValues('X'))

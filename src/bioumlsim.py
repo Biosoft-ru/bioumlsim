@@ -1,5 +1,6 @@
 import jpype
 import jpype.imports
+import numpy
 
 class BioUMLSim:
     
@@ -14,7 +15,7 @@ class BioUMLSim:
         """
         self.bioUMLPath = path
         print("JVM is starting up")
-        jpype.startJVM(classpath=[self.bioUMLPath+'/plugins/*',self.bioUMLPath+'/plugins/cern.jet.random_1.3.0/colt.jar'])
+        jpype.startJVM(classpath=[self.bioUMLPath+'/plugins/*',self.bioUMLPath+'/plugins/cern.jet.random_1.3.0/colt.jar'], convertStrings=True)
  
     def runJVM(path):
         """
@@ -63,4 +64,38 @@ class Model:
         print(f"Simulating model: {self.engine.getDiagram().getName()}.")
         self.engine.setCompletionTime(tend)
         self.engine.setTimeIncrement(tend / numpoints)
-        return self.engine.simulateSimple(self.model) 
+        return Result(self.engine.simulateSimple(self.model), self.engine) 
+    
+class Result:
+    
+    def __init__(self, sr, engine):
+        self.sr = sr
+        self.engine = engine
+        species = engine.getFloatingSpecies()
+        self.values = numpy.array(sr.getValuesTransposed(species))
+        self.names = numpy.array(species)
+        self.times = numpy.array(sr.getTimes());
+        
+    def toFile(self, file, precision=3, separator ='\t'):
+        f = open(file, 'w')
+        f.write(numpy.array2string(self.names, separator=separator)[1:-1])
+        f.write('\n')
+        for row in self.values:
+            f.write(numpy.array2string(row, precision=precision, separator=separator)[1:-1])
+            f.write('\n')
+        f.close()
+    
+    def __str__(self):
+        return str(self.values)
+    
+    def getTimes(self):
+        return self.times
+    
+    def getNames(self):
+        return self.names
+        
+    def getValues(self, variable=None):
+        if (variable!=None):
+            return numpy.array(self.sr.getValues(variable))
+        else:
+            return self.values
