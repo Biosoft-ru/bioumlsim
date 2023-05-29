@@ -1,6 +1,8 @@
 import jpype
 import jpype.imports
-import numpy
+import numpy as np
+import pandas as pd
+import os
 
 class BioUMLSim:
     
@@ -8,25 +10,13 @@ class BioUMLSim:
     atol = 1E-8
     rtol = 1E-8
     engine = None
-    
-    def __init__(self, path = 'C:/BioUML_2023.1'):
-        """
-        Code copied from runJVM method
-        """
+
+    def __init__(self):
+        path = os.path.dirname(__file__)+'/jars'
         self.bioUMLPath = path
         print("JVM is starting up")
-        jpype.startJVM(classpath=[self.bioUMLPath+'/plugins/*',self.bioUMLPath+'/plugins/cern.jet.random_1.3.0/colt.jar'], convertStrings=True)
- 
-    def runJVM(path):
-        """
-        Starts up Java Virtual Machine and adds all BioUML jars to classpath 
-        Args:
-            path (str): path to BioUML installation
-        """
-        self.bioUMLPath = path
-        print("JVM is starting up")
-        jpype.startJVM(classpath=[self.bioUMLPath+'/plugins/*',self.bioUMLPath+'/plugins/cern.jet.random_1.3.0/colt.jar'])
-       
+        jpype.startJVM(classpath=[path+'/*'], convertStrings=True)
+        
     def load(self, file):
         """
         Loads SBML file and transforms it into object which represents mathematical model.
@@ -36,11 +26,10 @@ class BioUMLSim:
             model
         """
         print(f"SBML file is loading: {file}.")
-        diagram = jpype.JClass("biouml.plugins.sbml.SbmlModelFactory").readDiagram(file)
+        diagram = jpype.JClass("biouml.plugins.sbml.SbmlModelFactory").readDiagram(file, False)
         self.engine = jpype.JClass("biouml.plugins.simulation.java.JavaSimulationEngine")()
         self.engine.setDiagram(diagram)
-        self.engine.setClassPath(self.bioUMLPath +'/plugins/biouml.plugins.simulation/src.jar')
-        self.engine.setOutputDir(self.bioUMLPath+'/temp')
+        self.engine.setClassPath(self.bioUMLPath +'/src.jar')
         self.engine.disableLog()
         self.engine.setAbsTolerance(self.atol)
         self.engine.setRelTolerance(self.rtol)
@@ -72,21 +61,22 @@ class Result:
         self.sr = sr
         self.engine = engine
         species = engine.getFloatingSpecies()
-        self.values = numpy.array(sr.getValuesTransposed(species))
-        self.names = numpy.array(species)
-        self.times = numpy.array(sr.getTimes());
+        self.values = np.array(sr.getValuesTransposed(species))
+        self.names = np.array(species)
+        self.times = np.array(sr.getTimes());
+        self.df = pd.DataFrame(self.values, columns = self.names, index = pd.Index(self.times, name ="Time"))
         
     def toFile(self, file, precision=3, separator ='\t'):
         f = open(file, 'w')
-        f.write(numpy.array2string(self.names, separator=separator)[1:-1])
+        f.write(np.array2string(self.names, separator=separator)[1:-1])
         f.write('\n')
         for row in self.values:
-            f.write(numpy.array2string(row, precision=precision, separator=separator)[1:-1])
+            f.write(np.array2string(row, precision=precision, separator=separator)[1:-1])
             f.write('\n')
         f.close()
     
     def __str__(self):
-        return str(self.values)
+        return str(self.df)
     
     def getTimes(self):
         return self.times
@@ -96,6 +86,6 @@ class Result:
         
     def getValues(self, variable=None):
         if (variable!=None):
-            return numpy.array(self.sr.getValues(variable))
+            return np.array(self.sr.getValues(variable))
         else:
             return self.values
