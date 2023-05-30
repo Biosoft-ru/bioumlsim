@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<sbml xmlns="http://www.sbml.org/sbml/level3/version2/core" level="3" version="2">
+  <model id="AB" name="AB">
+    <listOfCompartments>
+      <compartment constant="false" id="default" name="AB" size="1" spatialDimensions="3"/>
+    </listOfCompartments>
+    <listOfSpecies>
+      <species boundaryCondition="false" compartment="default" constant="false" hasOnlySubstanceUnits="false" id="A" initialAmount="100.0"/>
+      <species boundaryCondition="false" compartment="default" constant="false" hasOnlySubstanceUnits="false" id="B" initialAmount="0.0"/>
+    </listOfSpecies>
+    <listOfParameters>
+      <parameter constant="false" id="k" name="k" value="0.1"/>
+      <parameter constant="false" id="unknown" name="unknown" value="0.0"/>
+    </listOfParameters>
+    <listOfReactions>
+      <reaction id="Reaction_1" name="A -&gt; B" reversible="false">
+        <listOfReactants>
+          <speciesReference constant="false" species="A" stoichiometry="1"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference constant="false" species="B" stoichiometry="1"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci>k</ci>
+              <ci>A</ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+    </listOfReactions>
+  </model>
+</sbml>

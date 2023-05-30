@@ -25,7 +25,7 @@ class BioUMLSim:
         Returns:
             model
         """
-        print(f"SBML file is loading: {file}.")
+        print(f"SBML file is loading: {file}")
         diagram = jpype.JClass("biouml.plugins.sbml.SbmlModelFactory").readDiagram(file, False)
         self.engine = jpype.JClass("biouml.plugins.simulation.java.JavaSimulationEngine")()
         self.engine.setDiagram(diagram)
@@ -35,6 +35,15 @@ class BioUMLSim:
         self.engine.setRelTolerance(self.rtol)
         return Model(self.engine, self.engine.createModel())
     
+    def plot(self, df):
+        import matplotlib.pyplot as plt
+        plt.plot(df)
+        plt.show()
+    
+    def loadTest(self):
+        path = os.path.dirname(__file__)+'/test.xml'
+        return self.load(path)
+         
 class Model:
     
     def __init__(self, engine, model):
@@ -50,7 +59,7 @@ class Model:
         Returns:
             simulation results
         """
-        print(f"Simulating model: {self.engine.getDiagram().getName()}.")
+        print(f"Simulating model: {self.engine.getDiagram().getName()}")
         self.engine.setCompletionTime(tend)
         self.engine.setTimeIncrement(tend / numpoints)
         result = self.engine.simulateSimple(self.model)

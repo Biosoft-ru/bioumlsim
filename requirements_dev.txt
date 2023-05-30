@@ -4,3 +4,4 @@ wheel==0.33.1
 twine==4.0.2
 pandas
 numpy
+matplotlib
