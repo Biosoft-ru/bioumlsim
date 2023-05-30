@@ -53,39 +53,9 @@ class Model:
         print(f"Simulating model: {self.engine.getDiagram().getName()}.")
         self.engine.setCompletionTime(tend)
         self.engine.setTimeIncrement(tend / numpoints)
-        return Result(self.engine.simulateSimple(self.model), self.engine) 
-    
-class Result:
-    
-    def __init__(self, sr, engine):
-        self.sr = sr
-        self.engine = engine
-        species = engine.getFloatingSpecies()
-        self.values = np.array(sr.getValuesTransposed(species))
-        self.names = np.array(species)
-        self.times = np.array(sr.getTimes());
-        self.df = pd.DataFrame(self.values, columns = self.names, index = pd.Index(self.times, name ="Time"))
-        
-    def toFile(self, file, precision=3, separator ='\t'):
-        f = open(file, 'w')
-        f.write(np.array2string(self.names, separator=separator)[1:-1])
-        f.write('\n')
-        for row in self.values:
-            f.write(np.array2string(row, precision=precision, separator=separator)[1:-1])
-            f.write('\n')
-        f.close()
-    
-    def __str__(self):
-        return str(self.df)
-    
-    def getTimes(self):
-        return self.times
-    
-    def getNames(self):
-        return self.names
-        
-    def getValues(self, variable=None):
-        if (variable!=None):
-            return np.array(self.sr.getValues(variable))
-        else:
-            return self.values
+        result = self.engine.simulateSimple(self.model)
+        species = self.engine.getFloatingSpecies()
+        values = np.array(result.getValuesTransposed(species))
+        names = np.array(species)
+        times = np.array(result.getTimes());
+        return pd.DataFrame(values, columns = names, index = pd.Index(times, name ="Time"))
