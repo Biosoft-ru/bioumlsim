@@ -17,7 +17,7 @@ class BioUMLSim:
         print("JVM is starting up")
         jpype.startJVM(classpath=[path+'/*'], convertStrings=True)
         
-    def load(self, file):
+    def load(self, file, verbose = False):
         """
         Loads SBML file and transforms it into object which represents mathematical model.
         Args:
@@ -25,7 +25,8 @@ class BioUMLSim:
         Returns:
             model
         """
-        print(f"SBML file is loading: {file}")
+        if (verbose):
+             print(f"SBML file is loading: {file}")
         diagram = jpype.JClass("biouml.plugins.sbml.SbmlModelFactory").readDiagram(file, False)
         self.engine = jpype.JClass("biouml.plugins.simulation.java.JavaSimulationEngine")()
         self.engine.setDiagram(diagram)
@@ -50,7 +51,7 @@ class Model:
         self.engine = engine
         self.model = model
         
-    def simulate(self, tend, numpoints):
+    def simulate(self, tend, numpoints, verbose = False):
         """
         Simulates SBML model and returns results.
         Args:
@@ -59,7 +60,8 @@ class Model:
         Returns:
             simulation results
         """
-        print(f"Simulating model: {self.engine.getDiagram().getName()}")
+        if (verbose):
+            print(f"Simulating model: {self.engine.getDiagram().getName()}")
         self.engine.setCompletionTime(tend)
         self.engine.setTimeIncrement(tend / numpoints)
         result = self.engine.simulateSimple(self.model)
