@@ -1,22 +1,29 @@
 import jpype
-import jpype.imports
-import numpy as np
-import pandas as pd
-import os
+from os import path as ospath
 
-class BioUMLSim:
+from .jdkhandler import JDKHandler
+from .model import Model
+
+def installJDK():
+    JDKHandler.installJDK()
+        
+class Bioumlsim:
     
     bioUMLPath = None
     atol = 1E-8
     rtol = 1E-8
     engine = None
 
-    def __init__(self):
-        path = os.path.dirname(__file__)+'/jars'
+    def log(self, message, verbose=True):
+        if verbose:
+            print(message)  
+            
+    def __init__(self, jdk = '', verbose = False):
+        path = ospath.join(ospath.dirname(__file__), 'jars')
+        self.log('Path to java classes: ' + path, verbose)
         self.bioUMLPath = path
-        print("JVM is starting up")
-        jpype.startJVM(classpath=[path+'/*'], convertStrings=True)
-        
+        JDKHandler().startJVM(path, jdk=jdk, verbose=verbose)
+
     def load(self, file, verbose = False):
         """
         Loads SBML file and transforms it into object which represents mathematical model.
@@ -25,13 +32,13 @@ class BioUMLSim:
         Returns:
             model
         """
-        if (verbose):
-             print(f"SBML file is loading: {file}")
-        diagram = jpype.JClass("biouml.plugins.sbml.SbmlModelFactory").readDiagram(file, False)
-        self.engine = jpype.JClass("biouml.plugins.simulation.java.JavaSimulationEngine")()
+        self.log(f"SBML file is loading: {file}", verbose)
+        diagram = jpype.JClass('biouml.plugins.sbml.SbmlModelFactory').readDiagram(file, False)
+        self.engine = jpype.JClass('biouml.plugins.simulation.java.JavaSimulationEngine')()
         self.engine.setDiagram(diagram)
-        self.engine.setClassPath(self.bioUMLPath +'/src.jar')
-        self.engine.disableLog()
+        self.engine.setClassPath(ospath.join(self.bioUMLPath,'src.jar'))
+        if  not verbose:
+            self.engine.disableLog()
         self.engine.setAbsTolerance(self.atol)
         self.engine.setRelTolerance(self.rtol)
         return Model(self.engine, self.engine.createModel())
@@ -41,32 +48,6 @@ class BioUMLSim:
         plt.plot(df)
         plt.show()
     
-    def loadTest(self):
-        path = os.path.dirname(__file__)+'/test.xml'
-        return self.load(path)
-         
-class Model:
-    
-    def __init__(self, engine, model):
-        self.engine = engine
-        self.model = model
-        
-    def simulate(self, tend, numpoints, verbose = False):
-        """
-        Simulates SBML model and returns results.
-        Args:
-            tend: final time for simulation
-            numpoints: number of time points
-        Returns:
-            simulation results
-        """
-        if (verbose):
-            print(f"Simulating model: {self.engine.getDiagram().getName()}")
-        self.engine.setCompletionTime(tend)
-        self.engine.setTimeIncrement(tend / numpoints)
-        result = self.engine.simulateSimple(self.model)
-        species = self.engine.getFloatingSpecies()
-        values = np.array(result.getValuesTransposed(species))
-        names = np.array(species)
-        times = np.array(result.getTimes());
-        return pd.DataFrame(values, columns = names, index = pd.Index(times, name ="Time"))
+    def loadTest(self, verbose = False):
+        path = ospath.join(ospath.dirname(__file__),'test.xml')
+        return self.load(path, verbose=verbose)
