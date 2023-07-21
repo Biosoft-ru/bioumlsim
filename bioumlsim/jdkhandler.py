@@ -125,3 +125,4 @@ class JDKHandler:
            self.log ('JVM is located at ' + jvmPath, verbose)
            jpype.startJVM(jvmPath, classpath=[path + '/*'], convertStrings=True)
         print("JVM version: " + self.getJVMVersion())
+        return True

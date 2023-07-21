@@ -4,6 +4,8 @@ from os import path as ospath
 from .jdkhandler import JDKHandler
 from .model import Model
 
+jvmRunning = False
+
 def installJDK():
     JDKHandler.installJDK()
         
@@ -22,7 +24,10 @@ class Bioumlsim:
         path = ospath.join(ospath.dirname(__file__), 'jars')
         self.log('Path to java classes: ' + path, verbose)
         self.bioUMLPath = path
-        JDKHandler().startJVM(path, jdk=jdk, verbose=verbose)
+        global jvmRunning
+        if not jvmRunning:
+            JDKHandler().startJVM(path, jdk=jdk, verbose=verbose)
+        jvmRunning = True
 
     def load(self, file, verbose = False):
         """
